@@ -1,41 +1,311 @@
-# Seminarska naloga za vaje Kom
+# Documentation
 
-Pridružili ste se podjetju \_\_\_\_\_ (vstavi ime vašega podjetja). Ker gre za start-up, podjetje nima nikakršne IT infrastrukture. Tu nastopite vi. Šef vam naloži naslednja opravila:
+## Introduction
 
-* uporabniki in strežniki morajo biti vsak v svojem segmentu.
-* (opcijsko) uporabiti morate heterogene operacijske sisteme (vsaj po en Windows, Linux)
-* segment "uporabniki" naj ima omrežje 10.X.0.0/24 in segment "strežniki" naj ima omrežje 192.168.X.0/24 (pri čemer je X=številka vaše [skupine](https://ucilnica.fri.uni-lj.si/mod/choice/view.php?id=45650 "Skupine")). Vaš ISP (LRK :)) vam je dodelil [eno "zunanjo" IP številko in IPv6 naslovni prostor](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=7467).
-* V omrežju imejte tudi en segment, ki bo uporabljal **samo IPv6** protokol (_ipv6only_). V njem uporabite privatne IPv6 naslove (_unique local address_ - ULA), in jih s tehniko **NPTv6** (IPv6-to-IPv6 Network Prefix Translation - RFC 6296) preslikajte v enega izmed vam dodeljenih zunanjih IPv6 segmentov, **ki ga še niste uporabili kje drugje** (dodeljeni /62 je razdeljen na 4x /64, prvi je za povezavo z internetom, dva za dual stack omrežji DMZ in internal, zadnji pa za NPTv6 ipv6-only segment. NPTv6 je v Vyosu podprt v verziji VyOS >=1.2.
-* Nastavite ostale pomembne parametre: DNS, domensko ime, NTP strežnike, ... (torej vse "splošne" nastavitve, ki jih potrebujete v podjetju).
-* Smiselno nastavite storitvi DHCP in NAT. Strežniki naj imajo vedno enako IP številko, vendar mora vseeno biti dodeljena preko DHCP-ja. Uporabniki morajo imet dostop do interneta. Izpostaviti morate tudi nekaj storitev na vaših strežnikih (npr [REST](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45670 "REST"), Grafana, Cacti, ntop, ... glejte spodaj).
-* Nastavite tudi IPv6, segmentirajte ga sami, pri tem uporabite [dodeljen naslovni prostor IPv6](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=7467). Storitve, ki jih boste nudili uporabnikom izven vašega podjetja, morajo biti dostopne tudi preko IPv6 (kjer je to smiselno). IPv6 nastavite:
-  * na VyOS statično
-  * (vsaj) na enemu segmentu z uporabo SLAAC
-  * (vsaj) na enem segmentu z uporabo DHCPv6
+This was a dummy platform I built for the **Komunikacijski protokoli** course. It was hosted on [https://kpbookstore.ddns.net/login](https://kpbookstore.ddns.net/login). The following criteria was imposed:
 
-* Sprogramirajte eno [REST](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45670 "REST") storitev, kakšne vire (resources) boste izpostavili vašim uporabnikom se lahko odločite sami. Vira naj bosta vsaj dva, med seboj vsaj nekoliko povezana (npr. torej podobno kot je bilo predstavljeno na vajah za stranke in naročila).
+- program a REST app
+- endpoints should support `content negotiation` with 3 formats
+- optional: LDAP authentication and resource protection
+- REST operations should be safe
+- optional: use a database to persist the data
+- use HTTP1.1 and HTTP/2
+- optional: use HTTP/3
+- implement GraphQL
 
-  * viri naj podpirajo tehnike pogajanja o vsebini (_content negotiation_), podpreti morate vsaj tri formate (XML, JSON in enega poljubnega - html, text, itd.).
-  * (opcijsko) Vsaj ena operacija nad podatki naj bo zaščitena, torej dostopna samo izbrani skupini uporabnikov, ki so vpisani v enem od LDAP strežnikov. Razmislite, katere operacije bodo "prosto" dostopne, katere pa so takšne, da jih lahko uporabljajo le avtenticirani in avtorizirani uporabniki.
-  * povezave do vaših [REST](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45670 "REST") storitev naj bodo varne
-  * (opcijsko) Storitve naj bodo povezane s podatkovno bazo, tako da se vsebina ohrani tudi ob ponovnem zagonu strežnika
-  * Storitve naj bodo dostopne poleg HTTP1.1 tudi preko HTTP/2
-  * (opcijsko) HTTP/3  
+I added some additional features such as
 
-  * (opcijsko) enako naredite tudi v GraphQL
+- a frontend made in react
+- sessions and cookie auth
+- TLS and reverse proxy
+- database seeding
 
-* Postavite imenik uporabnikov (lahko AD - Microsoft Active Directory, lahko pa uporabite tudi kakšen drug LDAP strežnik!), vpišite par testnih uporabnikov, ki jih boste potem uporabljali v ostalih delih vašega sistema (VPN, avtentikacija za [REST](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45670 "REST") storitve, ...).
-* **Smiselno** **postavite** **požarne zidove**. Razmislite (in dokumentirajte!), kakšna naj bodo pravila znotraj vašega omrežja, kakšna za dostop od zunaj in kakšna za izhodni promet, katere storitve boste izpostavili navzven, katere bodo samo notranje dostopne, katere bodo uporabljale vaše stranke, katere pa administratorji sistema... Ne pozabite, da je vaše omrežje IPv4 in IPv6 (t.i. dual stack)
-* Omrežje mora omogočati oddaljen dostop uporabnikov preko navideznih zasebnih omrežij (VPN dostop do vašega omrežja). Pazite na to, da bo VPN dostop varen.  
-    (Opcijsko) Avtentikacija naj se izvaja na vaš aktivni imenik (ali LDAP kot je OpenLDAP). Torej za tiste uporabnike, ki so vpisani v vašem AD strežniku, oz. imajo v njem celo shranjena digitalna potrdila.
-* Upravljanje in nadzor omrežja in storitev:
+The platform itself mimics a book selling platform, where the users (LDAP users) can sell books in stores. The store hold some profit and receipts are automatically stored.
 
-  * Skonfigurirajte SNMP za beleženje dogodkov (beleženje vsaj enega vira, npr. spletnega ali aplikacijskega strežnika, procesorja, pomnilnika ... Poskusite najti nekaj smiselnega za vaš primer postavitve), podatki naj bodo vidni grafično (Cacti, Prometheus+Grafana, ali kar koli drugega...), zato nastavite ustrezno kratke intervale za SNMP pooling (da se bo na zagovoru sploh kaj videlo na grafih).
-  * (opcija) Nastavite netflow ali sflow beleženje tokov, generirajte nekaj prometa, ki naj se nato vidi v analizatorju tokov. Integrirate lahko v Cacti (uporabljali ste ga najbrž zgoraj za SNMP - tu morate instalirati vtičnik - plugin) ali pa uporabite kakšen drug programček, npr. "ntop" (ki ima že vgrajeno podporo) in je to ločena storitev za administratorja vašega omrežja.
+## Disclaimer
 
-* (opcija) IDS/IPS: namestite in demostrirajte uporabo IDS/IPS z npr. skeniranjem vašega omrežja z orodjem nmap, uganjevanjem SSH gesla, itd. Uporabite lahko katerokoli odprtokodno rešitev iz tega segmenta, npr. Snort + Snorby, itd.
-* [RAFT](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45688 "Raft"): postavite v vašem podjetju primer storitve, ki uporablja protokol [RAFT](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45688 "Raft"), na vsaj 3 računalnikih. Lahko je karkoli, kar uporablja [RAFT](https://ucilnica.fri.uni-lj.si/mod/page/view.php?id=45688 "Raft"), npr. etcd ali kaj podobnega.
+This stack is in no way production ready or secure. Just a homework assignment with lots of different concepts and challenges. It was also made in 2 days, so yeah.
 
-Na zagovor morate prinesti tudi tehnično **poročilo**, v katerem natančno opišete vaše rešitve problemov. Predvsem naj ne manjka **natančna shema omrežja, strežnikov, opis storitev, nastavitve požarnih zidov, ...** Poročilo se bo tudi točkovalo, je del ocene seminarske naloge. Poročilo naj bo napisano v smislu **tehnične dokumentacije** (npr. razmislite, kaj bi vi želeli imeti dokumentirano, če bi prišli v eno od takšnih podjetij namesto vašega kolega iz druge [skupine](https://ucilnica.fri.uni-lj.si/mod/choice/view.php?id=45650 "Skupine"), ki je vse to postavil...).
+## Stack
 
-Zagovori bodo zadnja dva tedna semestra. Razpored bomo objavili na učilnici, kamor se boste lahko prijavili v prosti termin. [Skupine](https://ucilnica.fri.uni-lj.si/mod/choice/view.php?id=45650 "Skupine") se lahko med seboj tudi zamenjajo termine, le obvestite me o tem.
+Stack consists of the following components. All of the reside on the `prod-network` docker network but expose some ports, which aren't necessarily visible through the firewall.
+
+- PostgreSQL database
+  - Exposed ports
+    - 5432:5432
+- NestJS API backend server
+  - Serves REST endpoints
+    - Almost all of them are protected
+  - Uses Prisma for the ORM
+  - Data can be seeded from a csv and some randomly generated stores and inventory can be added
+  - Support the following content negotiation formats
+    - `application/json`
+    - `text/csv`
+    - `text/xml`
+    - `text/yaml`
+  - Exposes OpenAPI Swagger documentation on `/api/docs`
+  - Exposes GraphQL on `/graphql`
+    - Supports most of the queries that are expected for object type
+    - Has one example subscription
+  - Authenticates with OpenLDAP
+    - uses passport library to do so: using the mail as the primary key
+- Caddy HTTPS server
+  - Also hosts static files made with react
+  - Exposed ports
+    - 80:80
+    - 443:443
+    - 443:443/udp
+- OpenLDAP server
+  - Exposed ports
+    - 389:389
+    - 636:636
+  - Uses a bootstrap file to create the initial users
+
+## Database schema
+
+![shchema](docs/schema.png)
+
+## LDAP Data Interchange Format
+
+> Bootstrap file
+
+Adds one Organization unit called `Groups`
+
+Adds 3 groups:
+
+- Sellers
+- Clerks
+- Admins
+
+Adds 6 users:
+
+- 2 Sellers
+- 2 Clerks
+- 2 Admins
+
+Passwords are `SSHA` encrypted but are all `12345678`
+
+```ldif
+# Group OU
+dn: ou=Groups,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: organizationalUnit
+ou: Groups
+
+# Users
+dn: cn=seller01,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: seller01
+givenname: seller01
+displayname: Frodo 
+sn: Baggins
+mail: seller01@kpbookstore.kp
+userpassword: 12345678
+
+dn: cn=seller02,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: seller02
+givenname: seller02
+displayname: Aragorn 
+sn: Ranger of the North
+mail: seller02@kpbookstore.kp
+userpassword: {SSHA}8zqIiFMZJlq3Z8VCFcv+uStj5WqMpzjW
+
+# Clerks 
+dn: cn=clerk01,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: clerk01
+givenname: clerk01
+displayname: Jan 
+sn: Vasiljevic
+mail: clerk01@kpbookstore.kp
+userpassword: {SSHA}8zqIiFMZJlq3Z8VCFcv+uStj5WqMpzjW
+
+dn: cn=clerk02,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: clerk02
+givenname: clerk02
+displayname: Lan
+sn: Vukusic
+mail: clerk02@kpbookstore.kp
+userpassword: {SSHA}8zqIiFMZJlq3Z8VCFcv+uStj5WqMpzjW
+
+# Admins
+dn: cn=admin01,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: admin01
+givenname: admin01
+displayname: Samwise
+sn: Gamgee
+mail: admin01@kpbookstore.kp
+userpassword: {SSHA}8zqIiFMZJlq3Z8VCFcv+uStj5WqMpzjW
+
+dn: cn=admin02,dc=kpbookstore,dc=kp
+changetype: add
+objectclass: inetOrgPerson
+cn: admin02
+givenname: admin02
+displayname: Merry
+sn: Brandybuck
+mail: admin02@kpbookstore.kp
+userpassword: {SSHA}8zqIiFMZJlq3Z8VCFcv+uStj5WqMpzjW
+
+
+# Group mappers
+dn: cn=Sellers,ou=Groups,dc=kpbookstore,dc=kp
+changetype: add
+cn: Sellers
+objectclass: groupOfUniqueNames
+# Users that are Sellers
+uniqueMember: cn=seller01,dc=kpbookstore,dc=kp
+uniqueMember: cn=seller02,dc=kpbookstore,dc=kp
+
+dn: cn=Clerks,ou=Groups,dc=kpbookstore,dc=kp
+changetype: add
+cn: Clerks
+objectclass: groupOfUniqueNames
+# Users that are Clerks
+uniqueMember: cn=clerk01,dc=kpbookstore,dc=kp
+uniqueMember: cn=clerk02,dc=kpbookstore,dc=kp
+
+dn: cn=Admins,ou=Groups,dc=kpbookstore,dc=kp
+changetype: add
+cn: Admins
+objectclass: groupOfUniqueNames
+# Users that are Admins
+uniqueMember: cn=admin01,dc=kpbookstore,dc=kp
+uniqueMember: cn=admin02,dc=kpbookstore,dc=kp
+```
+
+## Reverse proxy
+
+The following config was used to establish a secure and http/3 compliant connection between the browser and server.
+
+```nginx
+{
+  servers :443 {
+    protocol {
+      experimental_http3
+    }
+  }
+}
+
+kpbookstore.ddns.net {
+    @proxied path /api/* /graphql /graphql/*
+
+    root * /home/me/frontend
+    encode gzip
+
+    handle @proxied {
+        reverse_proxy  http://prod-api-kp
+    }
+
+    handle {
+        try_files {path}.html {path} /
+        file_server
+    }
+}
+```
+
+## GraphQL
+
+The following schema was generated using the code first approach when programming the NestJS backend.
+
+```graphql
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type BookStoreCount {
+  bookInventory: Int!
+  booksSold: Int!
+}
+
+type BookStore {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  email: String!
+  phoneNumber: String!
+  url: String!
+  bookInventory: [BookInventory!]!
+  booksSold: [BookSold!]
+  totalProfit: Float!
+  _count: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type BookSold {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  book: Book!
+  bookStore: BookStore!
+
+  """Profit we sold the book at"""
+  profit: Float!
+  soldBy: String!
+  bookId: String!
+  bookStoreId: String!
+}
+
+type BookCount {
+  BookDisplay: Int!
+  SoldBook: Int!
+}
+
+type Book {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  title: String!
+  authors: String!
+  averageRating: Float!
+  isbn: String!
+  isbn13: String!
+  languageCode: String!
+  numOfPages: Int!
+  ratingsCount: Int!
+  textReviews: Int!
+  BookDisplay: [BookInventory!]!
+  SoldBook: [BookSold!]!
+  _count: Int!
+}
+
+type BookInventory {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  book: Book!
+  count: Int!
+  bookStore: BookStore!
+  price: Float!
+  bookId: String!
+  bookStoreId: String!
+}
+
+type Query {
+  books(take: Int = 10, skip: Int = 0): [Book!]!
+  book(id: String!): Book!
+  bookstore(id: String!): BookStore!
+  bookstores(take: Int = 10, skip: Int = 0): [BookStore!]!
+  inventory(id: String!): BookInventory!
+  inventories(take: Int = 10, skip: Int = 0): [BookInventory!]!
+  soldbooks(take: Int = 10, skip: Int = 0): [BookSold!]!
+  soldbook(id: String!): BookSold!
+}
+
+type Subscription {
+  bookSold: BookInventory!
+}
+```
