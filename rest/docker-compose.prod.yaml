@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  prod-db-kp:
+    container_name: prod-db-kp
+    image: postgres:14.2-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: kp-user
+      POSTGRES_PASSWORD: supersecure87654321production
+      POSTGRES_DB: kp-db
+    ports:
+      - "5432:5432"
+    networks:
+      - prod-network
+
+  prod-api-kp:
+    container_name: prod-api-kp
+    build:
+      context: ./api 
+      dockerfile: Dockerfile.prod
+    restart: always
+    depends_on:
+      - prod-db-kp
+      - openldap-prod-kp
+    networks:
+      - prod-network
+
+  reverse-proxy-kp: 
+    container_name: reverse-proxy-kp
+    build:
+      context: frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - 80:80
+      - 443:443
+      - "443:443/udp"
+    volumes:
+      - ./frontend/prod/Caddyfile:/etc/caddy/Caddyfile  # to mount custom Caddyfile
+      - ./data/caddy/data:/data 
+      - ./data/caddy/config:/config 
+    depends_on:
+      - prod-db-kp
+      - openldap-prod-kp
+    networks:
+      - prod-network
+
+  openldap-prod-kp:
+    container_name: openldap-prod-kp 
+    build:
+      context: ./infra/ldap 
+    ports:
+      - '389:389'
+      - '636:636'
+    environment:
+      LDAP_ADMIN_PASSWORD: production87654321
+      LDAP_BASE_DN: dc=kpbookstore,dc=kp
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    networks:
+      - prod-network
+
+networks:
+  prod-network:
+    driver: bridge
+
+volumes:
+  ldap_data:
+  ldap_config:

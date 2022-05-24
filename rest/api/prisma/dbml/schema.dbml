@@ -1,0 +1,65 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Book {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  title String [unique, not null]
+  authors String [not null]
+  averageRating Float [not null]
+  isbn String [not null]
+  isbn13 String [not null]
+  languageCode String [not null]
+  numOfPages Int [not null]
+  ratingsCount Int [not null]
+  textReviews Int [not null]
+  BookDisplay BookInventory [not null]
+  SoldBook BookSold [not null]
+}
+
+Table BookInventory {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  book Book [not null]
+  count Int [not null]
+  bookStore BookStore [not null]
+  price Float [not null]
+  bookId String [not null]
+  bookStoreId String [not null]
+}
+
+Table BookSold {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  book Book [not null]
+  bookStore BookStore [not null]
+  profit Float [not null, note: 'Profit we sold the book at']
+  soldBy String [not null]
+  bookId String [not null]
+  bookStoreId String [not null]
+}
+
+Table BookStore {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  name String [not null]
+  email String [not null]
+  phoneNumber String [not null]
+  url String [not null]
+  bookInventory BookInventory [not null]
+  booksSold BookSold [not null]
+  totalProfit Float [not null, default: 0]
+}
+
+Ref: BookInventory.bookId > Book.id
+
+Ref: BookInventory.bookStoreId > BookStore.id
+
+Ref: BookSold.bookId > Book.id
+
+Ref: BookSold.bookStoreId > BookStore.id

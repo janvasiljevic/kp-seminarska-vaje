@@ -1,0 +1,1 @@
+export const description = `An API made for "Komunikacijski Protokoli" course. Exposes a list of books, book stores, what each book store sells and their profits \n The API supports content negotiation and accepts JSON, CSV, YAML and XML.`;

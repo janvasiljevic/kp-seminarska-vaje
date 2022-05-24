@@ -1,0 +1,91 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type BookStoreCount {
+  bookInventory: Int!
+  booksSold: Int!
+}
+
+type BookStore {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  email: String!
+  phoneNumber: String!
+  url: String!
+  bookInventory: [BookInventory!]!
+  booksSold: [BookSold!]
+  totalProfit: Float!
+  _count: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type BookSold {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  book: Book!
+  bookStore: BookStore!
+
+  """Profit we sold the book at"""
+  profit: Float!
+  soldBy: String!
+  bookId: String!
+  bookStoreId: String!
+}
+
+type BookCount {
+  BookDisplay: Int!
+  SoldBook: Int!
+}
+
+type Book {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  title: String!
+  authors: String!
+  averageRating: Float!
+  isbn: String!
+  isbn13: String!
+  languageCode: String!
+  numOfPages: Int!
+  ratingsCount: Int!
+  textReviews: Int!
+  BookDisplay: [BookInventory!]!
+  SoldBook: [BookSold!]!
+  _count: Int!
+}
+
+type BookInventory {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  book: Book!
+  count: Int!
+  bookStore: BookStore!
+  price: Float!
+  bookId: String!
+  bookStoreId: String!
+}
+
+type Query {
+  books(take: Int = 10, skip: Int = 0): [Book!]!
+  book(id: String!): Book!
+  bookstore(id: String!): BookStore!
+  bookstores(take: Int = 10, skip: Int = 0): [BookStore!]!
+  inventory(id: String!): BookInventory!
+  inventories(take: Int = 10, skip: Int = 0): [BookInventory!]!
+  soldbooks(take: Int = 10, skip: Int = 0): [BookSold!]!
+  soldbook(id: String!): BookSold!
+}
+
+type Subscription {
+  bookSold: BookInventory!
+}

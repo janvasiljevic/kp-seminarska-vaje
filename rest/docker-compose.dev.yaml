@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  kp-db:
+    container_name: kp-db
+    image: postgres:14.2-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: kp-user
+      POSTGRES_PASSWORD: supersecure
+      POSTGRES_DB: kp-db
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  kp-api:
+    container_name: kp-api
+    build:
+      context: ./api 
+    restart: always
+    volumes:
+      - ./api:/usr/src/app
+    depends_on:
+      - kp-db
+    networks:
+      - app-network
+
+  kp-caddy: 
+    container_name: kp-caddy
+    image: caddy:2.5.1-alpine
+    ports:
+      - 80:80
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infra/certs:/root/certs # to sync mkcert certificates to Caddy
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile  # to mount custom Caddyfile
+    depends_on:
+      - kp-db
+    networks:
+      - app-network
+
+  kp-openldap:
+    container_name: kp-openldap  
+    build:
+      context: ./infra/ldap 
+  
+    ports:
+      - '389:389'
+      - '636:636'
+    environment:
+      LDAP_ADMIN_PASSWORD: test1234
+      LDAP_BASE_DN: dc=kpbookstore,dc=kp
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    networks:
+      - app-network
+
+  # kp-nginx:
+  #   container_name: kp-nginx
+  #   image: macbre/nginx-http3:1.21.6
+  #   restart: on-failure
+  #   volumes:
+  #     - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  #   ports:
+  #     - 80:80
+  #   depends_on:
+  #     - kp-db
+  #   networks:
+  #     - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  ldap_data:
+  ldap_config:

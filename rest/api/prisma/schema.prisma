@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator nestgraphql {
+  provider    = "node node_modules/prisma-nestjs-graphql"
+  output      = "../src/@generated/prisma-nestjs-graphql"
+  purgeOutput = true
+
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+generator nestjsDto {
+  provider                        = "prisma-generator-nestjs-dto"
+  output                          = "../src"
+  outputToNestJsResourceStructure = "true"
+  exportRelationModifierClasses   = "true"
+  reExport                        = "false"
+  createDtoPrefix                 = "Create"
+  updateDtoPrefix                 = "Update"
+  dtoSuffix                       = "Dto"
+  entityPrefix                    = ""
+  entitySuffix                    = ""
+  fileNamingStyle                 = "kebab"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  // -------- Start of head
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // -------- End of head
+
+  title         String @unique
+  authors       String
+  averageRating Float
+  isbn          String
+  isbn13        String
+  languageCode  String
+  numOfPages    Int
+  ratingsCount  Int
+  textReviews   Int
+
+  // Relations
+  BookDisplay BookInventory[]
+  SoldBook    BookSold[]
+}
+
+model BookInventory {
+  // -------- Start of head
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // -------- End of head
+
+  // Book we are selling
+  book Book @relation(fields: [bookId], references: [id])
+
+  // Number of books to display
+  count Int
+
+  // In which store we are selling
+  bookStore BookStore @relation(fields: [bookStoreId], references: [id])
+
+  // Price of the book
+  price Float
+
+  // auto generated id
+  bookId      String
+  bookStoreId String
+}
+
+model BookSold {
+  // -------- Start of head
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // -------- End of head
+
+  book      Book      @relation(fields: [bookId], references: [id])
+  bookStore BookStore @relation(fields: [bookStoreId], references: [id])
+
+  /// Profit we sold the book at
+  profit Float
+
+  soldBy String
+
+  bookId      String
+  bookStoreId String
+}
+
+model BookStore {
+  // -------- Start of head
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // -------- End of head
+
+  // Name of the shop
+  name String
+
+  // Email of the shop
+  email String
+
+  // phone number of the shop
+  phoneNumber String
+
+  // URL address of the shop
+  url String
+
+  // Our inventory of books
+  bookInventory BookInventory[]
+
+  // Books we sold
+  booksSold BookSold[]
+
+  // Total profits
+  totalProfit Float @default(0)
+}

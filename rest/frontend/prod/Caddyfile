@@ -1,0 +1,24 @@
+
+{
+  servers :443 {
+    protocol {
+      experimental_http3
+    }
+  }
+}
+
+kpbookstore.ddns.net {
+    @proxied path /api/* /graphql /graphql/*
+
+    root * /home/me/frontend
+    encode gzip
+
+    handle @proxied {
+        reverse_proxy  http://prod-api-kp
+    }
+
+    handle {
+        try_files {path}.html {path} /
+        file_server
+    }
+}
