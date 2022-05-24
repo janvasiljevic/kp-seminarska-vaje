@@ -309,3 +309,14 @@ type Subscription {
   bookSold: BookInventory!
 }
 ```
+
+## Frontend screenshots
+
+Made with React, Mantine and some love.
+
+![s1](docs/1.png)  
+![s2](docs/2.png)  
+![s3](docs/3.png)  
+![s4](docs/4.png)  
+![s5](docs/5.png)  
+![s6](docs/6.png)
