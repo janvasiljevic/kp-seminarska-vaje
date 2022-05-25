@@ -13,7 +13,7 @@ import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ContentNegotationAll } from 'src/common/decorators';
 import { SessionUser } from 'src/common/decorators/session-user.decorator';
 import { LoggedInGuard } from 'src/common/guards/logged-in.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
+import { RoleGuard, Roles } from 'src/common/guards/role.guard';
 import { ContentInterceptor } from 'src/common/interceptor/content.interceptor';
 import { ISessionUser } from 'src/common/interfaces';
 import { BookStoreService } from './book-store.service';
@@ -32,6 +32,8 @@ export class BookStoreController {
   constructor(private readonly bookStoreService: BookStoreService) {}
 
   @Post()
+  @Roles('admin')
+  @ApiOperation({ summary: 'Admin only: Creat a new bookstore' })
   create(@Body() createBookStoreDto: CreateBookStoreDto): Promise<BookStore> {
     return this.bookStoreService.create(createBookStoreDto);
   }
@@ -47,6 +49,8 @@ export class BookStoreController {
   }
 
   @Patch(':id/sell/:inventoryId')
+  @Roles('seller')
+  @ApiOperation({ summary: 'Seller only: Creat a new bookstore' })
   @ApiOperation({ description: 'Sell a book', summary: 'Sell a book' })
   sellOne(
     @Param('id') bookStoreId: string,
@@ -57,6 +61,8 @@ export class BookStoreController {
   }
 
   @Patch(':id')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Admin only: Update a bookstore' })
   update(
     @Param('id') id: string,
     @Body() updateBookStoreDto: UpdateBookStoreDto,

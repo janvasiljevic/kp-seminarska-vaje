@@ -86,6 +86,10 @@ type Query {
   soldbook(id: String!): BookSold!
 }
 
+type Mutation {
+  sellInventory(bookStoreId: String!, inventoryId: String!, sellerName: String!, sellerSurname: String!): BookStore!
+}
+
 type Subscription {
   bookSold: BookInventory!
 }

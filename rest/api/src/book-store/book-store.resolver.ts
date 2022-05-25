@@ -4,6 +4,7 @@ import {
   ArgsType,
   Field,
   Int,
+  Mutation,
   Parent,
   Query,
   ResolveField,
@@ -15,13 +16,16 @@ import { BookInventory } from 'src/@generated/prisma-nestjs-graphql/book-invento
 import { BookStore } from 'src/@generated/prisma-nestjs-graphql/book-store/book-store.model';
 import { Book } from 'src/@generated/prisma-nestjs-graphql/book/book.model';
 import { PaginationArgs } from 'src/common/args';
+import { ISessionUser } from 'src/common/interfaces';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { BookStoreService } from './book-store.service';
 
 @Resolver((of) => BookStore)
 export class BookStoreResolver {
   constructor(
     private prismaService: PrismaService,
     @Inject('PUB_SUB') private pubSub: PubSubEngine,
+    private bookStoreService: BookStoreService,
   ) {}
 
   @Query((returns) => BookStore, { name: 'bookstore' })
@@ -49,5 +53,23 @@ export class BookStoreResolver {
   @ResolveField('_count', (returns) => Int)
   async getCount(@Parent() _: [BookStore]) {
     return await this.prismaService.bookInventory.count();
+  }
+
+  @Mutation((returns) => BookStore)
+  async sellInventory(
+    @Args({ name: 'bookStoreId', type: () => String }) bookStoreId: string,
+    @Args({ name: 'inventoryId', type: () => String }) inventoryId: string,
+    @Args({ name: 'sellerName', type: () => String }) firstname: string,
+    @Args({ name: 'sellerSurname', type: () => String }) lastname: string,
+  ) {
+    const dummy: ISessionUser = {
+      dn: '_',
+      mail: '_',
+      role: 'seller',
+      firstname,
+      lastname,
+    };
+
+    return this.bookStoreService.sellOne(bookStoreId, inventoryId, dummy);
   }
 }

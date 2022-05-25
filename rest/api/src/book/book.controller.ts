@@ -11,13 +11,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   ContentNegotationAll,
   OpenApiPaginationResponse,
 } from 'src/common/decorators';
 import { LoggedInGuard } from 'src/common/guards/logged-in.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
+import { RoleGuard, Roles } from 'src/common/guards/role.guard';
 import { ContentInterceptor } from 'src/common/interceptor/content.interceptor';
 import { IPaginationResult } from 'src/common/interfaces';
 import { BookService } from './book.service';
@@ -36,6 +36,8 @@ export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Post()
+  @Roles('clerk')
+  @ApiOperation({ summary: 'Clerk only: create a new book' })
   create(@Body() createBookDto: CreateBookDto): Promise<Book> {
     return this.bookService.create(createBookDto);
   }
@@ -55,6 +57,8 @@ export class BookController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Clerk only: update a book' })
+  @Roles('clerk')
   update(
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,

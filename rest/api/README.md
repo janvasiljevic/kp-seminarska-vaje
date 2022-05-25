@@ -4,7 +4,7 @@ Made with NestJS and love <3.
 
 ## Example QPL query
 
-```grapql
+```gql
 query {
   # Zanima nas par trgovin, njihova imena, inventory ipd.
   bookstores (take : 5, skip: 5){
@@ -42,5 +42,28 @@ fragment BookFragment on Book {
   title
   authors
   averageRating
+}
+
+subscription {
+  bookSold {
+    id
+    book {
+      authors
+      title
+    }
+  }
+}
+
+
+mutation {
+  sellInventory(
+    bookStoreId: "cl3kj6ejg1040jzocm64enjbx"
+    sellerName: "Dummy"
+    sellerSurname: "DummySurname"
+    inventoryId: "cl3kj6em61342jzocjc3ay5nu"
+  ) {
+    name
+    totalProfit
+  }
 }
 ```
